@@ -23,7 +23,7 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function()
 end)
 
 -- 2. ГЛАВНЫЙ ИНТЕРФЕЙС
-local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local ScreenGui = Instance.new("ScreenGui", game:GetService("PlayerGui"))
 local Main = Instance.new("Frame", ScreenGui)
 local Sidebar = Instance.new("Frame", Main)
 local Content = Instance.new("Frame", Main)
