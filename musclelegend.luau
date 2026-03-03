@@ -1,50 +1,100 @@
 --[[ 
-    c00lhayx Menu (MUSCLE LEGENDS) - THE FINALE
-    Features: Auto-Weight, Auto-Rebirth, Speed Selector, 
-    Auto-Brawl Win, Auto-Wheel, Anti-AFK, Freeze Pos, Player-Sim
+    c00lhayx Menu (MUSCLE LEGENDS) - MEGA BUNDLE v6.0
+    [TABS] [SHIELD] [FARM] [NO CD,S] [TOOLS]
 ]]
 
+-- 1. ЯДРО ЗАЩИТЫ (Anti-Kick & Anti-AFK)
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    if getnamecallmethod() == "Kick" or getnamecallmethod() == "kick" then
+        warn("c00lhayx Shield: Попытка кика заблокирована!")
+        return nil
+    end
+    return oldNamecall(self, ...)
+end)
+setreadonly(mt, true)
+
+local VU = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    VU:CaptureController()
+    VU:ClickButton2(Vector2.new())
+end)
+
+-- 2. ГЛАВНЫЙ ИНТЕРФЕЙС
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 local Main = Instance.new("Frame", ScreenGui)
+local Sidebar = Instance.new("Frame", Main)
+local Content = Instance.new("Frame", Main)
 local Title = Instance.new("TextLabel", Main)
-local Scroll = Instance.new("ScrollingFrame", Main)
-local UIList = Instance.new("UIListLayout", Scroll)
 
--- Стиль c00lhayx (Red & Dark)
-Main.Name = "c00lhayx_Ultimate"
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Main.Name = "c00lhayx_MegaMenu"
+Main.Size = UDim2.new(0, 400, 0, 350)
+Main.Position = UDim2.new(0.5, -200, 0.3, 0)
+Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
 Main.BorderSizePixel = 2
 Main.BorderColor3 = Color3.fromRGB(255, 0, 0)
-Main.Position = UDim2.new(0.5, -110, 0.25, 0)
-Main.Size = UDim2.new(0, 230, 0, 380)
 Main.Active = true
 Main.Draggable = true
 
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-Title.Text = "c00lhayx Menu v3.0"
+Title.Text = "c00lhayx Menu ULTIMATE"
 Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 20
+Title.TextSize = 22
 
-Scroll.Size = UDim2.new(1, 0, 1, -40)
-Scroll.Position = UDim2.new(0, 0, 0, 40)
-Scroll.BackgroundTransparency = 1
-Scroll.CanvasSize = UDim2.new(0, 0, 1.8, 0)
-Scroll.ScrollBarThickness = 4
+Sidebar.Size = UDim2.new(0, 100, 1, -40)
+Sidebar.Position = UDim2.new(0, 0, 0, 40)
+Sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+local SidebarList = Instance.new("UIListLayout", Sidebar)
 
-UIList.Padding = UDim.new(0, 5)
-UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Content.Size = UDim2.new(1, -100, 1, -40)
+Content.Position = UDim2.new(0, 100, 0, 40)
+Content.BackgroundTransparency = 1
 
--- Симуляция игрока (Рандомные задержки)
-local function pWait(base) task.wait(base + (math.random() * 0.04)) end
+-- Вкладки
+local Pages = {
+    Menu = Instance.new("ScrollingFrame", Content),
+    NoCDs = Instance.new("ScrollingFrame", Content)
+}
 
-local function createBtn(name, callback)
-    local btn = Instance.new("TextButton", Scroll)
-    btn.Size = UDim2.new(0, 200, 0, 35)
+for _, p in pairs(Pages) do
+    p.Size = UDim2.new(1, 0, 1, 0)
+    p.Visible = false
+    p.BackgroundTransparency = 1
+    p.ScrollBarThickness = 4
+    p.CanvasSize = UDim2.new(0, 0, 2.5, 0)
+    local l = Instance.new("UIListLayout", p)
+    l.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    l.Padding = UDim.new(0, 5)
+end
+Pages.Menu.Visible = true
+
+-- Функция создания вкладок
+local function makeTab(name, page)
+    local b = Instance.new("TextButton", Sidebar)
+    b.Size = UDim2.new(1, 0, 0, 45)
+    b.Text = name
+    b.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.BorderSizePixel = 0
+    b.MouseButton1Click:Connect(function()
+        for _, p in pairs(Pages) do p.Visible = false end
+        page.Visible = true
+    end)
+end
+
+makeTab("MENU", Pages.Menu)
+makeTab("NO CD,S", Pages.NoCDs)
+
+-- Функция создания кнопок
+local function createBtn(name, parent, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0, 270, 0, 35)
     btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.Font = Enum.Font.SourceSansSemibold
     btn.Text = name .. ": OFF"
     local act = false
     btn.MouseButton1Click:Connect(function()
@@ -55,95 +105,87 @@ local function createBtn(name, callback)
     end)
 end
 
--- 1. СЕЛЕКТОР СКОРОСТИ
-local SpeedInput = Instance.new("TextBox", Scroll)
-SpeedInput.Size = UDim2.new(0, 200, 0, 35)
-SpeedInput.PlaceholderText = "Speed (16-500)"
-SpeedInput.Text = ""
-SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-SpeedInput.TextColor3 = Color3.new(1, 1, 1)
-
-createBtn("Apply Speed", function(state)
-    _G.SpeedLoop = state
-    task.spawn(function()
-        while _G.SpeedLoop do
-            local hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-            if hum then hum.WalkSpeed = tonumber(SpeedInput.Text) or 16 end
-            task.wait(0.1)
-        end
-    end)
+-- === [ВКЛАДКА: MENU] ===
+createBtn("Auto-Weight (PlayerSim)", Pages.Menu, function(s)
+    _G.AW = s task.spawn(function() while _G.AW do
+        local c = game.Players.LocalPlayer.Character
+        local t = game.Players.LocalPlayer.Backpack:FindFirstChild("Weight") or (c and c:FindFirstChild("Weight"))
+        if t then c.Humanoid:EquipTool(t) t:Activate() end
+        task.wait(0.12 + math.random()*0.05)
+    end end)
 end)
 
--- 2. AUTO-WEIGHT (Кач)
-createBtn("Auto-Weight", function(state)
-    _G.Weight = state
-    task.spawn(function()
-        while _G.Weight do
-            local tool = game.Players.LocalPlayer.Backpack:FindFirstChild("Weight") or game.Players.LocalPlayer.Character:FindFirstChild("Weight")
-            if tool then 
-                game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
-                tool:Activate() 
+createBtn("Auto-Rebirth", Pages.Menu, function(s)
+    _G.AR = s task.spawn(function() while _G.AR do
+        game:GetService("ReplicatedStorage").rEvents.rebirthEvent:FireServer("rebirthRequest")
+        task.wait(2)
+    end end)
+end)
+
+createBtn("Auto-Gem (FireTouch)", Pages.Menu, function(s)
+    _G.AG = s task.spawn(function() while _G.AG do
+        pcall(function()
+            for _, v in pairs(workspace.collectableItems:GetChildren()) do
+                if v.Name == "Gem" then
+                    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v, 0)
+                    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v, 1)
+                end
             end
-            pWait(0.1)
-        end
-    end)
+        end)
+        task.wait(1)
+    end end)
 end)
 
--- 3. AUTO-REBIRTH (Добавил!)
-createBtn("Auto-Rebirth", function(state)
-    _G.Rebirth = state
-    task.spawn(function()
-        while _G.Rebirth do
-            game:GetService("ReplicatedStorage").rEvents.rebirthEvent:FireServer("rebirthRequest")
-            task.wait(2)
-        end
-    end)
+createBtn("Unlock VIP Areas", Pages.Menu, function(s)
+    for _, gym in pairs(workspace.Gyms:GetChildren()) do
+        local d = gym:FindFirstChild("Door") or gym:FindFirstChild("Gate")
+        if d then d.CanCollide = not s d.Transparency = s and 0.5 or 0 end
+    end
 end)
 
--- 4. AUTO-BRAWL WIN
-createBtn("Auto-Brawl Win", function(state)
-    _G.Brawl = state
-    task.spawn(function()
-        while _G.Brawl do
-            game:GetService("ReplicatedStorage").rEvents.brawlEvent:FireServer("joinBrawl")
-            local root = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if root and game.Workspace:FindFirstChild("BrawlRing") then
-                root.CFrame = game.Workspace.BrawlRing.CFrame + Vector3.new(0, 5, 0)
-            end
-            task.wait(0.5)
-        end
-    end)
+local SpdBox = Instance.new("TextBox", Pages.Menu)
+SpdBox.Size = UDim2.new(0, 270, 0, 35)
+SpdBox.PlaceholderText = "Speed (16 - 500)"
+SpdBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+SpdBox.TextColor3 = Color3.new(1, 1, 1)
+
+createBtn("Apply HackSpeed", Pages.Menu, function(s)
+    _G.SS = s task.spawn(function() while _G.SS do
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(SpdBox.Text) or 16
+        task.wait(0.1)
+    end end)
 end)
 
--- 5. AUTO-WHEEL
-createBtn("Auto-Wheel", function(state)
-    _G.Wheel = state
-    task.spawn(function()
-        while _G.Wheel do
-            game:GetService("ReplicatedStorage").rEvents.wheelClickEvent:FireServer()
-            task.wait(10)
-        end
-    end)
+local ToolBox = Instance.new("TextBox", Pages.Menu)
+ToolBox.Size = UDim2.new(0, 270, 0, 35)
+ToolBox.PlaceholderText = "Drink: AgilityDrink"
+ToolBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+ToolBox.TextColor3 = Color3.new(1, 1, 1)
+
+createBtn("HackToolGiver", Pages.Menu, function()
+    game:GetService("ReplicatedStorage").rEvents.shopEvent:FireServer("buyItem", ToolBox.Text)
 end)
 
--- 6. FREEZE POS (Set Pos)
-local savedPos = nil
-createBtn("Freeze Pos", function(state)
-    _G.Freeze = state
-    if state then savedPos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame end
-    task.spawn(function()
-        while _G.Freeze do
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = savedPos
-            task.wait()
-        end
-    end)
+-- === [ВКЛАДКА: NO CD,S] ===
+createBtn("Anti-CD Punch (Spam)", Pages.NoCDs, function(s)
+    _G.NP = s task.spawn(function() while _G.NP do
+        game:GetService("ReplicatedStorage").rEvents.punchEvent:FireServer("punchClick")
+        task.wait(0.01)
+    end end)
 end)
 
--- 7. ANTI-AFK (Запуск сразу)
-local VU = game:GetService("VirtualUser")
-game:GetService("Players").LocalPlayer.Idled:Connect(function()
-    VU:CaptureController()
-    VU:ClickButton2(Vector2.new())
+createBtn("Anti-CD Weight (Spam)", Pages.NoCDs, function(s)
+    _G.NW = s task.spawn(function() while _G.NW do
+        game:GetService("ReplicatedStorage").rEvents.weightEvent:FireServer("weightClick")
+        task.wait(0.01)
+    end end)
 end)
 
-print("c00lhayx Menu Loaded! Anti-AFK Active.")
+createBtn("Auto-Brawl (No Delay)", Pages.NoCDs, function(s)
+    _G.NB = s task.spawn(function() while _G.NB do
+        game:GetService("ReplicatedStorage").rEvents.brawlEvent:FireServer("joinBrawl")
+        task.wait(0.5)
+    end end)
+end)
+
+print("c00lhayx Menu MEGA BUNDLE Loaded!")
